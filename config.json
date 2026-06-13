@@ -1,0 +1,101 @@
+{
+  "providers": {
+    "deepseek": {
+      "base_url": "https://api.deepseek.com",
+      "api_key_env": "DEEPSEEK_API_KEY"
+    },
+    "bailian": {
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "api_key_env": "DASHSCOPE_API_KEY"
+    },
+    "agnes": {
+      "base_url": "https://apihub.agnes-ai.com/v1",
+      "api_key_env": "AGNES_API_KEY"
+    }
+  },
+
+  "model_defs": {
+    "agnes-2.0-flash": {
+      "provider": "agnes",
+      "model": "agnes-2.0-flash",
+      "price_input": 0,
+      "price_output": 0
+    },
+    "deepseek-v4-flash": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "price_input": 1,
+      "price_output": 2
+    },
+    "qwen-vl-plus": {
+      "provider": "bailian",
+      "model": "qwen-vl-plus",
+      "price_input": 0.8,
+      "price_output": 2
+    },
+    "deepseek-v4-pro": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "price_input": 5,
+      "price_output": 10
+    }
+  },
+
+  "output_dir": "~/Documents/bilibili",
+
+  "download": {
+    "headers": [
+      "User-Agent:Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+      "Referer:https://www.bilibili.com/",
+      "Origin:https://www.bilibili.com/"
+    ],
+    "format": "worstvideo[ext=mp4]+worstaudio[ext=m4a]/worst[ext=mp4]/worst"
+  },
+
+  "prompts": {
+    "visual_cue": "你是一个视频内容分析助手。分析下面带有时间戳的逐字稿，找出所有说话者提及或展示视觉内容的时间点。\n\n视觉内容包括但不限于：\n- 图片、照片、插图、图表、截图\n- PPT幻灯片、文档、代码\n- 实物展示、操作演示、手势指向\n- 屏幕录制、软件界面、网页\n- 视频片段播放\n\n触发词：「大家看」「请看」「如图」「这个图」「屏幕」「展示」「显示」「演示」「示例」「这个画面」「这里可以看到」「我们来看」「注意看」「这张图」等\n\n输出格式：每行一个时间戳 HH:MM:SS\n如果没有找到，输出 NONE\n不要输出其他内容。",
+    "frame_analysis": "请详细描述这张图片中的视觉内容：画面里有什么？是什么风格？包含什么文字或数据？如果是截图，它展示了什么信息？请用中文回答。",
+    "summarize": "你是一个视频内容分析助手。你的任务是将视频逐字稿整理为结构化的中文总结。\n\n输出格式：\n\n# 标题（根据内容生成）\n\n## 概述\n2-3 句话概括视频核心内容。\n\n## 要点\n- 每点前标注时间戳 [HH:MM:SS]\n- 提取关键信息、论据、数据\n- 保持客观，不添加原文没有的内容\n\n## 金句\n- [HH:MM:SS] 原文引用的精彩语句\n\n## 延伸思考\n- 基于内容的开放性问题或相关背景补充（非必须可不写）\n\n注意：\n- 如果逐字稿是英文，用英文总结；否则用中文\n- 不要编造时间戳，只使用原文中出现的时间信息\n- 如果原文没有明确分段，按语义自然切分",
+    "master_summarize": "你是一个视频内容分析师。下面是一个 UP 主的多个视频的单独总结，请综合所有视频，生成一份结构化的全局汇总报告。\n\n输出格式：\n\n# UP 主全局分析报告\n\n## 概览\n- UP 主：[名称]\n- 视频数量：[N] 个\n- 内容领域：概括主要方向\n- 更新频率：观察到的发布规律\n\n## 核心主题\n按主题分类每个视频，列出关键观点和论点\n\n## 内容特点\n分析 UP 主的风格、叙事方式、内容质量\n\n## 时间线 / 演变\n如果视频有明确的时间顺序，分析内容的演进脉络\n\n## 推荐观看优先级\n- ⭐⭐⭐ 必看：[视频标题]\n- ⭐⭐ 推荐：[视频标题]\n- ⭐ 可选：[视频标题]\n\n注意：只基于提供的总结内容，不编造信息。"
+  },
+
+  "pipelines": {
+    "ds_qwen": {
+      "visual_cue": {
+        "model": "deepseek-v4-flash",
+        "temperature": 0.05,
+        "max_tokens": 2048
+      },
+      "frame_analysis": {
+        "model": "qwen-vl-plus",
+        "temperature": 0.3,
+        "max_tokens": 1024
+      }
+    },
+    "agnes_full": {
+      "fallback": "ds_qwen",
+      "visual_cue": {
+        "model": "agnes-2.0-flash",
+        "temperature": 0.05,
+        "max_tokens": 2048
+      },
+      "frame_analysis": {
+        "model": "agnes-2.0-flash",
+        "temperature": 0.3,
+        "max_tokens": 1024
+      }
+    }
+  },
+
+  "summarize": {
+    "model": "deepseek-v4-flash",
+    "temperature": 0.3,
+    "max_tokens": 8192
+  },
+
+  "judge": {
+    "model": "deepseek-v4-pro",
+    "temperature": 0.1,
+    "max_tokens": 4096
+  }
+}

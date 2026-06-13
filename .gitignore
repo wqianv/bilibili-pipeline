@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+cookies.txt
+*.db
+fav_urls.txt
+process_fav.log
+output/
